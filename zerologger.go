@@ -20,7 +20,7 @@ type ZeroLogger struct {
 
 // Debug debug implements logger
 func (l *ZeroLogger) Debug(who, format string, v ...interface{}) {
-	l.logger.Info().Str("who", who).Msgf(format, v...)
+	l.logger.Debug().Str("who", who).Msgf(format, v...)
 }
 
 // Info info implements the fast proxy logger
