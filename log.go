@@ -1,6 +1,6 @@
 package log
 
-//Logger proxy logger, used for logging proxy info and errors
+// Logger proxy logger, used for logging proxy info and errors
 type Logger interface {
 	Debug(who, format string, v ...interface{})
 	Info(who, format string, v ...interface{})

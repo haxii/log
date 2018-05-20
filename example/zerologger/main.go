@@ -11,7 +11,15 @@ func main() {
 }
 
 func zeroLoggerExample() {
-	zeroLogger, err := log.MakeZeroLogger(true, "/tmp/log", "ExampleService")
+	zeroLogger, err := log.MakeZeroLogger(true,
+		log.LoggingConfig{
+			FileDir: "/tmp/log",
+			Logstash: &log.LogstashConfig{
+				Type: log.LogstashInputTypeTCP,
+				Addr: "10.1.3.8:8084",
+			},
+		},
+		"ExampleService")
 	if err != nil {
 		panic(err)
 	}
