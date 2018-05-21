@@ -2,8 +2,11 @@ package log
 
 import (
 	"errors"
+	"math"
 	"net"
+	"os"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 )
@@ -18,8 +21,16 @@ type logstashWriter struct {
 	maxRetries    int
 	retryInterval time.Duration
 
-	lock sync.RWMutex
+	lock   sync.RWMutex
+	status int32
 }
+
+// status enum
+const (
+	statusOnline int32 = iota
+	statusOffline
+	statusReconnecting
+)
 
 // LogstashInputType log stash input type tcp or udp
 type LogstashInputType int
@@ -74,81 +85,83 @@ func makeLogstashWriter(c LogstashConfig) (*logstashWriter, error) {
 }
 
 func (l *logstashWriter) reconnect() error {
-	l.lock.Lock()
-	defer l.lock.Unlock()
+	// set the shared status to 'reconnecting', if it's already the case, return early,
+	// something's already trying to reconnect
+	if !atomic.CompareAndSwapInt32(&l.status, statusOffline, statusReconnecting) {
+		return nil
+	}
 
 	serverAddr := l.conn.RemoteAddr()
-	var conn net.Conn
-	var err error
-	switch l.inputType {
-	case LogstashInputTypeTCP:
-		conn, err = net.DialTCP(serverAddr.Network(), nil, serverAddr.(*net.TCPAddr))
-	case LogstashInputTypeUDP:
-		conn, err = net.DialUDP(serverAddr.Network(), udpSrcAddr, serverAddr.(*net.UDPAddr))
-	default:
-		err = errUnknownInputType
-	}
+	conn, err := net.DialTCP(serverAddr.Network(), nil, serverAddr.(*net.TCPAddr))
 	if err != nil {
+		// reset shared status to offline
+		defer atomic.StoreInt32(&l.status, statusOffline)
 		return err
 	}
 
+	// set new TCP socket
 	l.conn.Close()
 	l.conn = conn
+
+	// we're back online, set shared status accordingly
+	atomic.StoreInt32(&l.status, statusOnline)
+
 	return nil
 }
 
 var udpSrcAddr = &net.UDPAddr{IP: net.IPv4zero, Port: 0}
 
-// Write implements io.Write interface using logstash UDP input
+// Write implements io.Write interface using logstash TCP & UDP input
 func (l *logstashWriter) Write(p []byte) (n int, err error) {
+	if l.inputType == LogstashInputTypeUDP {
+		return l.conn.Write(p)
+	}
+
+	defer func() {
+		recover()
+	}()
+
 	l.lock.RLock()
 	defer l.lock.RUnlock()
 
-	disconnected := false
-
-	t := l.retryInterval
 	for i := 0; i < l.maxRetries; i++ {
-		if disconnected {
-			time.Sleep(t)
-			t *= 2
-			l.lock.RUnlock()
-			if err := l.reconnect(); err != nil {
-				switch e := err.(type) {
-				case *net.OpError:
-					if e.Err.(syscall.Errno) == syscall.ECONNREFUSED {
-						disconnected = true
-						l.lock.RLock()
-						continue
+		if atomic.LoadInt32(&l.status) == statusOnline {
+			n, err := l.conn.Write(p)
+			if err == nil {
+				return n, err
+			}
+			switch e := err.(type) {
+			case *net.OpError:
+				if realErrNo, ok := e.Err.(syscall.Errno); ok {
+					if realErrNo == syscall.ECONNRESET ||
+						realErrNo == syscall.EPIPE {
+						atomic.StoreInt32(&l.status, statusOffline)
 					}
-					return -1, err
-				default:
-					return -1, err
+				} else if realErr, ok := e.Err.(*os.SyscallError); ok {
+					if realErr.Err == syscall.ECONNRESET ||
+						realErr.Err == syscall.EPIPE {
+						atomic.StoreInt32(&l.status, statusOffline)
+					}
+				} else {
+					return n, err
 				}
-			} else {
-				disconnected = false
+			default:
+				if err.Error() == "EOF" {
+					atomic.StoreInt32(&l.status, statusOffline)
+				} else {
+					return n, err
+				}
 			}
-			l.lock.RLock()
-		}
-		n, err := l.conn.Write(p)
-		if err == nil {
-			return n, err
-		}
-		switch e := err.(type) {
-		case *net.OpError:
-			if e.Err.(syscall.Errno) == syscall.ECONNRESET ||
-				e.Err.(syscall.Errno) == syscall.EPIPE {
-				disconnected = true
-			} else {
-				return n, err
-			}
-		default:
-			if err.Error() == "EOF" {
-				disconnected = true
-			} else {
-				return n, err
+		} else if atomic.LoadInt32(&l.status) == statusOffline {
+			if err := l.reconnect(); err != nil {
+				return -1, err
 			}
 		}
-		t *= 2
+
+		// exponential backoff
+		if i < (l.maxRetries - 1) {
+			time.Sleep(l.retryInterval * time.Duration(math.Pow(2, float64(i))))
+		}
 	}
 
 	return -1, ErrMaxConnRetries
