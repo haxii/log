@@ -1,5 +1,4 @@
-# log [![Build Status](https://travis-ci.org/haxii/log.svg?branch=master)](https://travis-ci.org/haxii/log) 
-[![GoDoc](https://godoc.org/github.com/haxii/log?status.svg)](https://godoc.org/github.com/haxii/log)
+# log [![Build Status](https://travis-ci.org/haxii/log.svg?branch=master)](https://travis-ci.org/haxii/log) [![GoDoc](https://godoc.org/github.com/haxii/log?status.svg)](https://godoc.org/github.com/haxii/log)
 
 Quick &amp; Reliable server service logging for golang.
 
