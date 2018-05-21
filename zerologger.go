@@ -50,7 +50,7 @@ type LoggingConfig struct {
 func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, error) {
 	l := ZeroLogger{}
 	zerolog.DisableSampling(true)
-	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.000"
+	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
 
 	var err error
 	logWriters := make([]io.Writer, 0, 3)
