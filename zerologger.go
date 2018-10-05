@@ -1,6 +1,7 @@
 package log
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -18,17 +19,27 @@ type ZeroLogger struct {
 	logstash *logstashWriter
 }
 
-// Debug debug implements logger
+// Raw implements raw logger interface
+func (l *ZeroLogger) Raw(rawMessage []byte) {
+	if json.Valid(rawMessage) {
+		rawMessageInJSON := json.RawMessage(rawMessage)
+		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msg("")
+	} else {
+		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessage).Msg("")
+	}
+}
+
+// Debug implements debug logger interface
 func (l *ZeroLogger) Debug(who, format string, v ...interface{}) {
 	l.logger.Debug().Str("who", who).Msgf(format, v...)
 }
 
-// Info info implements the fast proxy logger
+// Info implements info logger interface
 func (l *ZeroLogger) Info(who, format string, v ...interface{}) {
 	l.logger.Info().Str("who", who).Msgf(format, v...)
 }
 
-// Error info implements the fast proxy logger
+// Error implements error logger interface
 func (l *ZeroLogger) Error(who string, err error, format string, v ...interface{}) {
 	l.logger.Error().Err(err).Str("who", who).Msgf(format, v...)
 }

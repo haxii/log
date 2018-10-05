@@ -5,6 +5,11 @@ import "log"
 // DefaultLogger default logger based on std logger
 type DefaultLogger struct{}
 
+// Raw log
+func (l *DefaultLogger) Raw(rawMessage []byte) {
+	log.Printf("[ RAW ] %s", rawMessage)
+}
+
 // Debug log info
 func (l *DefaultLogger) Debug(who, format string, v ...interface{}) {
 	log.Printf("[ DEBUG "+who+" ] "+format, v...)
