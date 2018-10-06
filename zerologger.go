@@ -28,12 +28,12 @@ func (l *ZeroLogger) IsProduction() bool {
 }
 
 // Raw implements raw logger interface
-func (l *ZeroLogger) Raw(rawMessage []byte) {
+func (l *ZeroLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
 	if json.Valid(rawMessage) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
-		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msg("")
+		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msgf(format, v...)
 	} else {
-		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessage).Msg("")
+		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessage).Msgf(format, v...)
 	}
 }
 

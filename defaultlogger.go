@@ -11,8 +11,8 @@ func (l *DefaultLogger) IsProduction() bool {
 }
 
 // Raw log
-func (l *DefaultLogger) Raw(rawMessage []byte) {
-	log.Printf("[ RAW ] %s", rawMessage)
+func (l *DefaultLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
+	log.Printf("[ RAW "+string(rawMessage)+" ] "+format, v...)
 }
 
 // Debug log info
