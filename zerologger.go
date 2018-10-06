@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/diode"
 )
 
 // ZeroLogger implemented logger using zerolog
@@ -46,7 +47,15 @@ func (l *ZeroLogger) Error(who string, err error, format string, v ...interface{
 
 // Fatal make a fatal return
 func (l *ZeroLogger) Fatal(who string, err error, format string, v ...interface{}) {
-	l.logger.Fatal().Err(err).Str("who", who).Msgf(format, v...)
+	l.logger.Panic().Err(err).Str("who", who).Msgf(format, v...)
+}
+
+// LazyLogging lazy logging settings
+type LazyLogging struct {
+	// DiodeSize ring buffer size
+	DiodeSize int
+	// PoolInterval the interval Diode query for data
+	PoolInterval time.Duration
 }
 
 // LoggingConfig helper for a logging destination
@@ -55,10 +64,20 @@ type LoggingConfig struct {
 	FileDir string
 	// Logstash config
 	Logstash *LogstashConfig
+	// LazyLogging settings
+	LazyLogging *LazyLogging
 }
+
+// ErrInvalidZeroLogConfig provided logging config is invalid
+var ErrInvalidZeroLogConfig = errors.New("invalid logger config")
 
 // MakeZeroLogger create a new logger using zero logger
 func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, error) {
+	if c.LazyLogging != nil {
+		if c.LazyLogging.DiodeSize <= 0 {
+			return nil, ErrInvalidZeroLogConfig
+		}
+	}
 	l := ZeroLogger{}
 	zerolog.DisableSampling(true)
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
@@ -70,7 +89,13 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 		if err != nil {
 			return nil, err
 		}
-		logWriters = append(logWriters, l.logFile)
+		if c.LazyLogging != nil {
+			diodeLogFile := diode.NewWriter(l.logFile,
+				c.LazyLogging.DiodeSize, c.LazyLogging.PoolInterval, nil)
+			logWriters = append(logWriters, diodeLogFile)
+		} else {
+			logWriters = append(logWriters, l.logFile)
+		}
 	}
 
 	if c.Logstash != nil {
@@ -78,7 +103,13 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 		if err != nil {
 			return nil, err
 		}
-		logWriters = append(logWriters, l.logstash)
+		if c.LazyLogging != nil {
+			diodeLogstash := diode.NewWriter(l.logstash,
+				c.LazyLogging.DiodeSize, c.LazyLogging.PoolInterval, nil)
+			logWriters = append(logWriters, diodeLogstash)
+		} else {
+			logWriters = append(logWriters, l.logstash)
+		}
 	}
 
 	if debug {
