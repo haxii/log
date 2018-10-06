@@ -15,9 +15,16 @@ import (
 
 // ZeroLogger implemented logger using zerolog
 type ZeroLogger struct {
-	logger   zerolog.Logger
-	logFile  *os.File
-	logstash *logstashWriter
+	isProduction bool
+	logger       zerolog.Logger
+	logFile      *os.File
+	logstash     *logstashWriter
+}
+
+// IsProduction implements raw logger interface to indicate
+// the production level, avoids the meaningless calculation in debug and info
+func (l *ZeroLogger) IsProduction() bool {
+	return l.isProduction
 }
 
 // Raw implements raw logger interface
@@ -79,6 +86,7 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 		}
 	}
 	l := ZeroLogger{}
+	l.isProduction = !debug
 	zerolog.DisableSampling(true)
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
 

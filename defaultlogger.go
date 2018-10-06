@@ -5,6 +5,11 @@ import "log"
 // DefaultLogger default logger based on std logger
 type DefaultLogger struct{}
 
+// IsProduction this basic default logger used only for testing
+func (l *DefaultLogger) IsProduction() bool {
+	return false
+}
+
 // Raw log
 func (l *DefaultLogger) Raw(rawMessage []byte) {
 	log.Printf("[ RAW ] %s", rawMessage)

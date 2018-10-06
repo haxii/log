@@ -41,8 +41,12 @@ func zeroLoggerExample() {
 
 	zeroLogger.Raw([]byte("this is a raw message, which should be logged in BASE64 format"))
 	zeroLogger.Raw([]byte(`{"this is":{"a raw message":"which should be","logged":"in raw JSON format"}}`))
-	zeroLogger.Debug("Example Client", "this is a %s", "debug output")
-	zeroLogger.Info("Example Client", "this is a %s", "debug output")
+	if !zeroLogger.IsProduction() {
+		zeroLogger.Debug("Example Client", "this is a %s", "debug output")
+	}
+	if !zeroLogger.IsProduction() {
+		zeroLogger.Info("Example Client", "this is a %s", "debug output")
+	}
 	zeroLogger.Error("Example Client", io.EOF, "this is a %s", "error output with EOF error")
 	zeroLogger.Fatal("Example Client", io.EOF, "this is a %s", "fatal output with EOF error")
 }
