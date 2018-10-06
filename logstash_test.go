@@ -20,8 +20,8 @@ func TestAutoReconnect(t *testing.T) {
 	// connect a client to the server
 	c, err := makeLogstashWriter(
 		LogstashConfig{
-			Type: LogstashInputTypeTCP,
-			Addr: addr.String(),
+			Type:                   LogstashInputTypeTCP,
+			Addr:                   addr.String(),
 			KeepAliveCheckInterval: time.Second,
 		},
 	)
@@ -84,8 +84,8 @@ func TestMultipleWrite(t *testing.T) {
 	// connect a client to the server
 	c, err := makeLogstashWriter(
 		LogstashConfig{
-			Type: LogstashInputTypeTCP,
-			Addr: addr.String(),
+			Type:                   LogstashInputTypeTCP,
+			Addr:                   addr.String(),
 			KeepAliveCheckInterval: time.Second,
 		},
 	)
