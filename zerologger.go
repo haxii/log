@@ -170,7 +170,7 @@ func (l *ZeroLogger) makefile(dir string, filename string) (f *os.File, e error)
 		return nil, err
 	}
 	filePath := filepath.Join(dir, filename)
-	fileWriter, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY, 0644)
+	fileWriter, err := os.OpenFile(filePath, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
 	if err != nil {
 		return nil, err
 	}
