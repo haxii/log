@@ -21,6 +21,10 @@ type ZeroLogger struct {
 	logstash     *logstashWriter
 }
 
+func (l *ZeroLogger) getZeroLogger() zerolog.Logger {
+	return l.logger
+}
+
 // IsProduction implements raw logger interface to indicate
 // the production level, avoids the meaningless calculation in debug and info
 func (l *ZeroLogger) IsProduction() bool {
