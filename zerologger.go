@@ -21,7 +21,8 @@ type ZeroLogger struct {
 	logstash     *logstashWriter
 }
 
-func (l *ZeroLogger) getZeroLogger() zerolog.Logger {
+// GetZeroLogger returns the zero logger instance for advanced usage
+func (l *ZeroLogger) GetZeroLogger() zerolog.Logger {
 	return l.logger
 }
 
