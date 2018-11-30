@@ -38,7 +38,7 @@ func (l *ZeroLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
 		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msgf(format, v...)
 	} else {
-		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessage).Msgf(format, v...)
+		l.logger.WithLevel(zerolog.NoLevel).Bytes("raw", rawMessage).Msgf(format, v...)
 	}
 }
 
