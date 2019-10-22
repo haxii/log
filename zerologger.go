@@ -18,7 +18,7 @@ type ZeroLogger struct {
 	isProduction bool
 	logger       zerolog.Logger
 	logFile      *os.File
-	logstash     *logstashWriter
+	logStash     *logstashWriter
 }
 
 // GetZeroLogger returns the zero logger instance for advanced usage
@@ -72,6 +72,8 @@ type LazyLogging struct {
 
 // LoggingConfig helper for a logging destination
 type LoggingConfig struct {
+	// Disable console color
+	DisableConsoleColor bool
 	// FileDir write log to dir
 	FileDir string
 	// Logstash config
@@ -112,28 +114,28 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 	}
 
 	if c.Logstash != nil {
-		l.logstash, err = makeLogstashWriter(*c.Logstash)
+		l.logStash, err = makeLogstashWriter(*c.Logstash)
 		if err != nil {
 			return nil, err
 		}
 		if c.LazyLogging != nil {
-			diodeLogstash := diode.NewWriter(l.logstash,
+			diodeLogstash := diode.NewWriter(l.logStash,
 				c.LazyLogging.DiodeSize, c.LazyLogging.PoolInterval, nil)
 			logWriters = append(logWriters, diodeLogstash)
 		} else {
-			logWriters = append(logWriters, l.logstash)
+			logWriters = append(logWriters, l.logStash)
 		}
 	}
 
 	if debug {
-		logWriters = append(logWriters, zerolog.ConsoleWriter{Out: os.Stderr})
+		logWriters = append(logWriters, zerolog.ConsoleWriter{Out: os.Stderr, NoColor: c.DisableConsoleColor})
 		zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	} else {
 		zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	}
 
 	if len(logWriters) == 0 {
-		return nil, errors.New("no log writer avaliable")
+		return nil, errors.New("no log writer available")
 	}
 
 	l.logger = zerolog.

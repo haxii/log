@@ -40,7 +40,7 @@ const (
 	LogstashInputTypeUDP
 )
 
-// LogstashConfig config for logstash
+// LogstashConfig config for logStash
 type LogstashConfig struct {
 	Type LogstashInputType
 	Addr string
@@ -50,7 +50,7 @@ type LogstashConfig struct {
 
 var minKeepAliveCheckInterval = 1 * time.Second
 
-var errUnknownInputType = errors.New("unsupported logstash input type")
+var errUnknownInputType = errors.New("unsupported logStash input type")
 
 func makeLogstashWriter(c LogstashConfig) (*logstashWriter, error) {
 	var conn net.Conn
@@ -172,7 +172,7 @@ func (l *logstashWriter) reconnect() error {
 
 var udpSrcAddr = &net.UDPAddr{IP: net.IPv4zero, Port: 0}
 
-// Write implements io.Write interface using logstash TCP & UDP input
+// Write implements io.Write interface using logStash TCP & UDP input
 func (l *logstashWriter) Write(p []byte) (n int, err error) {
 	if l.inputType == LogstashInputTypeUDP {
 		return l.conn.Write(p)
