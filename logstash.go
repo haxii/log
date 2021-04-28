@@ -19,8 +19,7 @@ type logstashWriter struct {
 
 	maxRetries    int
 	retryInterval time.Duration
-
-	status int32
+	status        int32
 }
 
 // status enum
