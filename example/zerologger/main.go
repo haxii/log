@@ -16,10 +16,6 @@ func zeroLoggerExample() {
 	zeroLogger, err := log.MakeZeroLogger(true,
 		log.LoggingConfig{
 			FileDir: "/tmp/log",
-			Logstash: &log.LogstashConfig{
-				Type: log.LogstashInputTypeTCP,
-				Addr: "10.1.3.8:8084",
-			},
 			LazyLogging: &log.LazyLogging{
 				DiodeSize:    1000,
 				PoolInterval: 10 * time.Millisecond,
@@ -47,6 +43,6 @@ func zeroLoggerExample() {
 	if !zeroLogger.IsProduction() {
 		zeroLogger.Info("Example Client", "this is a %s", "debug output")
 	}
-	zeroLogger.Error("Example Client", io.EOF, "this is a %s", "error output with EOF error")
-	zeroLogger.Fatal("Example Client", io.EOF, "this is a %s", "fatal output with EOF error")
+	zeroLogger.Error(io.EOF, "this is a %s", "error output with EOF error")
+	zeroLogger.Fatal(io.EOF, "this is a %s", "fatal output with EOF error")
 }

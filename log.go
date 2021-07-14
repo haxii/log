@@ -4,8 +4,8 @@ package log
 type Logger interface {
 	IsProduction() bool
 	Raw(rawMessage []byte, format string, v ...interface{})
-	Debug(who, format string, v ...interface{})
-	Info(who, format string, v ...interface{})
-	Error(who string, err error, format string, v ...interface{})
-	Fatal(who string, err error, format string, v ...interface{})
+	Debug(format string, v ...interface{})
+	Info(format string, v ...interface{})
+	Error(err error, format string, v ...interface{})
+	Fatal(err error, format string, v ...interface{})
 }

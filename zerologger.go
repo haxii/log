@@ -16,7 +16,6 @@ type ZeroLogger struct {
 	isProduction bool
 	logger       zerolog.Logger
 	logFile      *os.File
-	logStash     *logstashWriter
 }
 
 // GetZeroLogger returns the zero logger instance for advanced usage
@@ -41,23 +40,23 @@ func (l *ZeroLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
 }
 
 // Debug implements debug logger interface
-func (l *ZeroLogger) Debug(who, format string, v ...interface{}) {
-	l.logger.Debug().Str("who", who).Msgf(format, v...)
+func (l *ZeroLogger) Debug(format string, v ...interface{}) {
+	l.logger.Debug().Msgf(format, v...)
 }
 
 // Info implements info logger interface
-func (l *ZeroLogger) Info(who, format string, v ...interface{}) {
-	l.logger.Info().Str("who", who).Msgf(format, v...)
+func (l *ZeroLogger) Info(format string, v ...interface{}) {
+	l.logger.Info().Msgf(format, v...)
 }
 
 // Error implements error logger interface
-func (l *ZeroLogger) Error(who string, err error, format string, v ...interface{}) {
-	l.logger.Error().Err(err).Str("who", who).Msgf(format, v...)
+func (l *ZeroLogger) Error(err error, format string, v ...interface{}) {
+	l.logger.Error().Err(err).Msgf(format, v...)
 }
 
 // Fatal make a fatal return
-func (l *ZeroLogger) Fatal(who string, err error, format string, v ...interface{}) {
-	l.logger.Panic().Err(err).Str("who", who).Msgf(format, v...)
+func (l *ZeroLogger) Fatal(err error, format string, v ...interface{}) {
+	l.logger.Panic().Err(err).Msgf(format, v...)
 }
 
 // LazyLogging lazy logging settings
@@ -74,8 +73,6 @@ type LoggingConfig struct {
 	DisableConsoleColor bool
 	// FileDir write log to dir
 	FileDir string
-	// Logstash config
-	Logstash *LogstashConfig
 	// LazyLogging settings
 	LazyLogging *LazyLogging
 }
@@ -108,20 +105,6 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 			logWriters = append(logWriters, diodeLogFile)
 		} else {
 			logWriters = append(logWriters, l.logFile)
-		}
-	}
-
-	if c.Logstash != nil {
-		l.logStash, err = makeLogstashWriter(*c.Logstash)
-		if err != nil {
-			return nil, err
-		}
-		if c.LazyLogging != nil {
-			diodeLogstash := diode.NewWriter(l.logStash,
-				c.LazyLogging.DiodeSize, c.LazyLogging.PoolInterval, nil)
-			logWriters = append(logWriters, diodeLogstash)
-		} else {
-			logWriters = append(logWriters, l.logStash)
 		}
 	}
 
