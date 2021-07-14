@@ -1,9 +1,8 @@
 package main
 
 import (
-	"io"
-
 	"github.com/haxii/log"
+	"io"
 )
 
 func main() {
@@ -12,10 +11,10 @@ func main() {
 
 func defaultLoggerExample() {
 	defaultLogger := &log.DefaultLogger{}
-	defaultLogger.Raw([]byte("this is a raw message, which should be logged in plain format"), "")
-	defaultLogger.Raw([]byte(`{"this is":{"a raw message":"which should be","logged":"in plain format"}}`), "")
-	defaultLogger.Debug("Example Client", "this is a %s", "debug output")
-	defaultLogger.Info("Example Client", "this is a %s", "debug output")
-	defaultLogger.Error(io.EOF, "this is a %s", "error output with EOF error")
-	defaultLogger.Fatal(io.EOF, "this is a %s", "fatal output with EOF error")
+	defaultLogger.Rawf([]byte("this is a raw message, which should be logged in plain format"), "")
+	defaultLogger.Rawf([]byte(`{"this is":{"a raw message":"which should be","logged":"in plain format"}}`), "")
+	defaultLogger.Debugf("this is a %s", "debug output")
+	defaultLogger.Infof("this is a %s", "debug output")
+	defaultLogger.Errorf(io.EOF, "this is a %s", "error output with EOF error")
+	defaultLogger.Fatalf(io.EOF, "this is a %s", "fatal output with EOF error")
 }

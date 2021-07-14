@@ -5,18 +5,28 @@ import "log"
 // DefaultLogger default logger based on std logger
 type DefaultLogger struct{}
 
-// Debug log info
-func (l *DefaultLogger) Debug(format string, v ...interface{}) {
+// IsProduction this basic default logger used only for testing
+func (l *DefaultLogger) IsProduction() bool {
+	return false
+}
+
+// Rawf log
+func (l *DefaultLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
+	log.Printf("[ RAW "+string(rawMessage)+" ] "+format, v...)
+}
+
+// Debugf log info
+func (l *DefaultLogger) Debugf(format string, v ...interface{}) {
 	log.Printf("[ DEBUG ] "+format, v...)
 }
 
-// Info log info
-func (l *DefaultLogger) Info(format string, v ...interface{}) {
+// Infof log info
+func (l *DefaultLogger) Infof(format string, v ...interface{}) {
 	log.Printf("[ INFO ] "+format, v...)
 }
 
-// Error log error
-func (l *DefaultLogger) Error(err error, format string, v ...interface{}) {
+// Errorf log error
+func (l *DefaultLogger) Errorf(err error, format string, v ...interface{}) {
 	var errMsg string
 	if err != nil {
 		errMsg = err.Error()
@@ -24,8 +34,8 @@ func (l *DefaultLogger) Error(err error, format string, v ...interface{}) {
 	log.Printf("[ ERROR : "+errMsg+" ]"+format, v...)
 }
 
-// Fatal log fatal
-func (l *DefaultLogger) Fatal(err error, format string, v ...interface{}) {
+// Fatalf log fatal
+func (l *DefaultLogger) Fatalf(err error, format string, v ...interface{}) {
 	var errMsg string
 	if err != nil {
 		errMsg = err.Error()

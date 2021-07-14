@@ -3,9 +3,9 @@ package log
 // Logger proxy logger, used for logging proxy info and errors
 type Logger interface {
 	IsProduction() bool
-	Raw(rawMessage []byte, format string, v ...interface{})
-	Debug(format string, v ...interface{})
-	Info(format string, v ...interface{})
-	Error(err error, format string, v ...interface{})
-	Fatal(err error, format string, v ...interface{})
+	Rawf(rawMessage []byte, format string, args ...interface{})
+	Debugf(format string, args ...interface{})
+	Infof(format string, args ...interface{})
+	Errorf(err error, format string, args ...interface{})
+	Fatalf(err error, format string, args ...interface{})
 }

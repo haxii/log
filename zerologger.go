@@ -9,6 +9,7 @@ import (
 
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/diode"
+	"github.com/rs/zerolog/pkgerrors"
 )
 
 // ZeroLogger implemented logger using zerolog
@@ -29,8 +30,8 @@ func (l *ZeroLogger) IsProduction() bool {
 	return l.isProduction
 }
 
-// Raw implements raw logger interface
-func (l *ZeroLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
+// Rawf implements raw logger interface
+func (l *ZeroLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
 	if json.Valid(rawMessage) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
 		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msgf(format, v...)
@@ -39,24 +40,24 @@ func (l *ZeroLogger) Raw(rawMessage []byte, format string, v ...interface{}) {
 	}
 }
 
-// Debug implements debug logger interface
-func (l *ZeroLogger) Debug(format string, v ...interface{}) {
+// Debugf implements debug logger interface
+func (l *ZeroLogger) Debugf(format string, v ...interface{}) {
 	l.logger.Debug().Msgf(format, v...)
 }
 
-// Info implements info logger interface
-func (l *ZeroLogger) Info(format string, v ...interface{}) {
+// Infof implements info logger interface
+func (l *ZeroLogger) Infof(format string, v ...interface{}) {
 	l.logger.Info().Msgf(format, v...)
 }
 
-// Error implements error logger interface
-func (l *ZeroLogger) Error(err error, format string, v ...interface{}) {
-	l.logger.Error().Err(err).Msgf(format, v...)
+// Errorf implements error logger interface
+func (l *ZeroLogger) Errorf(err error, format string, v ...interface{}) {
+	l.logger.Error().Stack().Err(err).Msgf(format, v...)
 }
 
-// Fatal make a fatal return
-func (l *ZeroLogger) Fatal(err error, format string, v ...interface{}) {
-	l.logger.Panic().Err(err).Msgf(format, v...)
+// Fatalf make a fatal return
+func (l *ZeroLogger) Fatalf(err error, format string, v ...interface{}) {
+	l.logger.Panic().Stack().Err(err).Msgf(format, v...)
 }
 
 // LazyLogging lazy logging settings
@@ -89,6 +90,7 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 	}
 	l := ZeroLogger{}
 	l.isProduction = !debug
+	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.DisableSampling(true)
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
 
@@ -121,7 +123,7 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 
 	l.logger = zerolog.
 		New(zerolog.MultiLevelWriter(logWriters...)).
-		With().Timestamp().Str("service", service).Logger()
+		With().Timestamp().Caller().Str("service", service).Logger()
 
 	return &l, nil
 }

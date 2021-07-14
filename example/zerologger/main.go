@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"time"
 
 	"github.com/haxii/log"
+	"github.com/pkg/errors"
 )
 
 func main() {
@@ -35,14 +35,34 @@ func zeroLoggerExample() {
 		}
 	}()
 
-	zeroLogger.Raw([]byte("this is a raw message, which should be logged in string format"), "")
-	zeroLogger.Raw([]byte(`{"this is":{"a raw message":"which should be","logged":"in raw JSON format"}}`), "")
+	zeroLogger.Rawf([]byte("this is a raw message, which should be logged in string format"), "")
+	zeroLogger.Rawf([]byte(`{"this is":{"a raw message":"which should be","logged":"in raw JSON format"}}`), "")
 	if !zeroLogger.IsProduction() {
-		zeroLogger.Debug("Example Client", "this is a %s", "debug output")
+		zeroLogger.Debugf("this is a %s", "debug output")
 	}
 	if !zeroLogger.IsProduction() {
-		zeroLogger.Info("Example Client", "this is a %s", "debug output")
+		zeroLogger.Infof("this is a %s", "debug output")
 	}
-	zeroLogger.Error(io.EOF, "this is a %s", "error output with EOF error")
-	zeroLogger.Fatal(io.EOF, "this is a %s", "fatal output with EOF error")
+	zeroLogger.Errorf(outer(), "this is a %s", "error output with EOF error")
+	zeroLogger.Fatalf(outer(), "this is a %s", "fatal output with EOF error")
+}
+
+func inner() error {
+	return errors.New("seems we have an error here")
+}
+
+func middle() error {
+	err := inner()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func outer() error {
+	err := middle()
+	if err != nil {
+		return err
+	}
+	return nil
 }
