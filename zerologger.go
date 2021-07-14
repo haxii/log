@@ -3,6 +3,7 @@ package log
 import (
 	"encoding/json"
 	"errors"
+	"github.com/rs/zerolog/log"
 	"io"
 	"os"
 	"time"
@@ -80,6 +81,11 @@ type LoggingConfig struct {
 
 // ErrInvalidZeroLogConfig provided logging config is invalid
 var ErrInvalidZeroLogConfig = errors.New("invalid logger config")
+
+// MakeSimpleZeroLogger create a new simple logger using zero logger
+func MakeSimpleZeroLogger() *ZeroLogger {
+	return &ZeroLogger{isProduction: true, logger: log.Logger}
+}
 
 // MakeZeroLogger create a new logger using zero logger
 func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, error) {
