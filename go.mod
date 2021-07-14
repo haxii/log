@@ -1,4 +1,4 @@
-module github.com/haxii/log
+module github.com/haxii/log/v2
 
 go 1.16
 

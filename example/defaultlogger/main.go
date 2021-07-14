@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/haxii/log"
+	"github.com/haxii/log/v2"
 	"io"
 )
 

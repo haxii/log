@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/haxii/log"
+	"github.com/haxii/log/v2"
 	"github.com/pkg/errors"
 )
 
