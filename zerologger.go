@@ -31,34 +31,51 @@ func (l *ZeroLogger) IsProduction() bool {
 	return l.isProduction
 }
 
+const defaultCallSkip = 2
+
 // Rawf implements raw logger interface
 func (l *ZeroLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
+	l.rawf(defaultCallSkip, rawMessage, format, v...)
+}
+func (l *ZeroLogger) rawf(callSkip int, rawMessage []byte, format string, v ...interface{}) {
 	if json.Valid(rawMessage) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
-		l.logger.WithLevel(zerolog.NoLevel).Caller(1).Interface("raw", rawMessageInJSON).Msgf(format, v...)
+		l.logger.WithLevel(zerolog.NoLevel).Caller(callSkip).Interface("raw", rawMessageInJSON).Msgf(format, v...)
 	} else {
-		l.logger.WithLevel(zerolog.NoLevel).Caller(1).Bytes("raw", rawMessage).Msgf(format, v...)
+		l.logger.WithLevel(zerolog.NoLevel).Caller(callSkip).Bytes("raw", rawMessage).Msgf(format, v...)
 	}
 }
 
 // Debugf implements debug logger interface
 func (l *ZeroLogger) Debugf(format string, v ...interface{}) {
-	l.logger.Debug().Caller(1).Msgf(format, v...)
+	l.debugf(defaultCallSkip, format, v...)
+}
+func (l *ZeroLogger) debugf(callSkip int, format string, v ...interface{}) {
+	l.logger.Debug().Caller(callSkip).Msgf(format, v...)
 }
 
 // Infof implements info logger interface
 func (l *ZeroLogger) Infof(format string, v ...interface{}) {
-	l.logger.Info().Caller(1).Msgf(format, v...)
+	l.infof(defaultCallSkip, format, v...)
+}
+func (l *ZeroLogger) infof(callSkip int, format string, v ...interface{}) {
+	l.logger.Info().Caller(callSkip).Msgf(format, v...)
 }
 
 // Errorf implements error logger interface
 func (l *ZeroLogger) Errorf(err error, format string, v ...interface{}) {
-	l.logger.Error().Caller(1).Stack().Err(err).Msgf(format, v...)
+	l.errorf(defaultCallSkip, err, format, v...)
+}
+func (l *ZeroLogger) errorf(callSkip int, err error, format string, v ...interface{}) {
+	l.logger.Error().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
 }
 
 // Fatalf make a fatal return
 func (l *ZeroLogger) Fatalf(err error, format string, v ...interface{}) {
-	l.logger.Panic().Caller(1).Stack().Err(err).Msgf(format, v...)
+	l.fatalf(defaultCallSkip, err, format, v...)
+}
+func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interface{}) {
+	l.logger.Panic().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
 }
 
 // LazyLogging lazy logging settings
