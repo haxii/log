@@ -35,30 +35,30 @@ func (l *ZeroLogger) IsProduction() bool {
 func (l *ZeroLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
 	if json.Valid(rawMessage) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
-		l.logger.WithLevel(zerolog.NoLevel).Interface("raw", rawMessageInJSON).Msgf(format, v...)
+		l.logger.WithLevel(zerolog.NoLevel).Caller(1).Interface("raw", rawMessageInJSON).Msgf(format, v...)
 	} else {
-		l.logger.WithLevel(zerolog.NoLevel).Bytes("raw", rawMessage).Msgf(format, v...)
+		l.logger.WithLevel(zerolog.NoLevel).Caller(1).Bytes("raw", rawMessage).Msgf(format, v...)
 	}
 }
 
 // Debugf implements debug logger interface
 func (l *ZeroLogger) Debugf(format string, v ...interface{}) {
-	l.logger.Debug().Msgf(format, v...)
+	l.logger.Debug().Caller(1).Msgf(format, v...)
 }
 
 // Infof implements info logger interface
 func (l *ZeroLogger) Infof(format string, v ...interface{}) {
-	l.logger.Info().Msgf(format, v...)
+	l.logger.Info().Caller(1).Msgf(format, v...)
 }
 
 // Errorf implements error logger interface
 func (l *ZeroLogger) Errorf(err error, format string, v ...interface{}) {
-	l.logger.Error().Stack().Err(err).Msgf(format, v...)
+	l.logger.Error().Caller(1).Stack().Err(err).Msgf(format, v...)
 }
 
 // Fatalf make a fatal return
 func (l *ZeroLogger) Fatalf(err error, format string, v ...interface{}) {
-	l.logger.Panic().Stack().Err(err).Msgf(format, v...)
+	l.logger.Panic().Caller(1).Stack().Err(err).Msgf(format, v...)
 }
 
 // LazyLogging lazy logging settings
@@ -129,7 +129,7 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 
 	l.logger = zerolog.
 		New(zerolog.MultiLevelWriter(logWriters...)).
-		With().Timestamp().Caller().Str("service", service).Logger()
+		With().Timestamp().Str("service", service).Logger()
 
 	return &l, nil
 }
