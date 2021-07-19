@@ -6,6 +6,7 @@ import (
 
 	"github.com/haxii/log/v2"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
 )
 
 func main() {
@@ -13,15 +14,12 @@ func main() {
 }
 
 func zeroLoggerExample() {
-	zeroLogger, err := log.MakeZeroLogger(true,
+	zeroLogger, err := log.MakeZeroLogger(
 		log.LoggingConfig{
+			Level:   zerolog.WarnLevel,
 			FileDir: "/tmp/log",
-			LazyLogging: &log.LazyLogging{
-				DiodeSize:    1000,
-				PoolInterval: 10 * time.Millisecond,
-			},
-		},
-		"ExampleService")
+			Service: "example",
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -37,12 +35,8 @@ func zeroLoggerExample() {
 
 	zeroLogger.Rawf([]byte("this is a raw message, which should be logged in string format"), "")
 	zeroLogger.Rawf([]byte(`{"this is":{"a raw message":"which should be","logged":"in raw JSON format"}}`), "")
-	if !zeroLogger.IsProduction() {
-		zeroLogger.Debugf("this is a %s", "debug output")
-	}
-	if !zeroLogger.IsProduction() {
-		zeroLogger.Infof("this is a %s", "debug output")
-	}
+	zeroLogger.Debugf("this is a %s", "debug output")
+	zeroLogger.Infof("this is a %s", "info output")
 	zeroLogger.Errorf(outer(), "this is a %s", "error output with EOF error")
 	zeroLogger.Fatalf(outer(), "this is a %s", "fatal output with EOF error")
 }

@@ -1,34 +1,25 @@
 package log
 
 import (
-	"encoding/json"
-	"errors"
-	"github.com/rs/zerolog/log"
 	"io"
 	"os"
-	"time"
 
+	"encoding/json"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog"
-	"github.com/rs/zerolog/diode"
+	"github.com/rs/zerolog/log"
 	"github.com/rs/zerolog/pkgerrors"
 )
 
 // ZeroLogger implemented logger using zerolog
 type ZeroLogger struct {
-	isProduction bool
-	logger       zerolog.Logger
-	logFile      *os.File
+	logger  zerolog.Logger
+	logFile *os.File
 }
 
 // GetZeroLogger returns the zero logger instance for advanced usage
 func (l *ZeroLogger) GetZeroLogger() zerolog.Logger {
 	return l.logger
-}
-
-// IsProduction implements raw logger interface to indicate
-// the production level, avoids the meaningless calculation in debug and info
-func (l *ZeroLogger) IsProduction() bool {
-	return l.isProduction
 }
 
 const defaultCallSkip = 2
@@ -78,41 +69,26 @@ func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interfa
 	l.logger.Panic().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
 }
 
-// LazyLogging lazy logging settings
-type LazyLogging struct {
-	// DiodeSize ring buffer size
-	DiodeSize int
-	// PoolInterval the interval Diode query for data
-	PoolInterval time.Duration
-}
-
 // LoggingConfig helper for a logging destination
 type LoggingConfig struct {
+	// Service service name
+	Service string
+	// Level logging level
+	Level zerolog.Level
 	// Disable console color
 	DisableConsoleColor bool
 	// FileDir write log to dir
 	FileDir string
-	// LazyLogging settings
-	LazyLogging *LazyLogging
 }
-
-// ErrInvalidZeroLogConfig provided logging config is invalid
-var ErrInvalidZeroLogConfig = errors.New("invalid logger config")
 
 // MakeSimpleZeroLogger create a new simple logger using zero logger
 func MakeSimpleZeroLogger() *ZeroLogger {
-	return &ZeroLogger{isProduction: true, logger: log.Logger}
+	return &ZeroLogger{logger: log.Logger}
 }
 
 // MakeZeroLogger create a new logger using zero logger
-func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, error) {
-	if c.LazyLogging != nil {
-		if c.LazyLogging.DiodeSize <= 0 {
-			return nil, ErrInvalidZeroLogConfig
-		}
-	}
+func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 	l := ZeroLogger{}
-	l.isProduction = !debug
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.DisableSampling(true)
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
@@ -120,24 +96,17 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 	var err error
 	logWriters := make([]io.Writer, 0, 3)
 	if len(c.FileDir) > 0 {
-		l.logFile, err = OpenLogFile(c.FileDir, service)
+		l.logFile, err = OpenLogFile(c.FileDir, c.Service)
 		if err != nil {
 			return nil, err
 		}
-		if c.LazyLogging != nil {
-			diodeLogFile := diode.NewWriter(l.logFile,
-				c.LazyLogging.DiodeSize, c.LazyLogging.PoolInterval, nil)
-			logWriters = append(logWriters, diodeLogFile)
-		} else {
-			logWriters = append(logWriters, l.logFile)
-		}
+		logWriters = append(logWriters, l.logFile)
 	}
 
-	if debug {
+	zerolog.SetGlobalLevel(c.Level)
+
+	if c.Level == zerolog.DebugLevel {
 		logWriters = append(logWriters, zerolog.ConsoleWriter{Out: os.Stderr, NoColor: c.DisableConsoleColor})
-		zerolog.SetGlobalLevel(zerolog.DebugLevel)
-	} else {
-		zerolog.SetGlobalLevel(zerolog.WarnLevel)
 	}
 
 	if len(logWriters) == 0 {
@@ -146,7 +115,7 @@ func MakeZeroLogger(debug bool, c LoggingConfig, service string) (*ZeroLogger, e
 
 	l.logger = zerolog.
 		New(zerolog.MultiLevelWriter(logWriters...)).
-		With().Timestamp().Str("service", service).Logger()
+		With().Timestamp().Str("service", c.Service).Logger()
 
 	return &l, nil
 }
