@@ -7,18 +7,18 @@ import (
 	"time"
 )
 
-func OpenLogFile(logdir, serviceName string) (*os.File, error) {
+func OpenLogFile(logDir, logName string) (*os.File, error) {
 	timeNOW := func() string {
 		return time.Now().Format("2006-01-02-15.04.05.999999999")
 	}
 
-	logFileName := serviceName + ".log"
-	logFilePath := filepath.Join(logdir, logFileName)
+	logFileName := logName + ".log"
+	logFilePath := filepath.Join(logDir, logFileName)
 
 	if fileExists(logFilePath) {
-		_ = os.Rename(logFilePath, filepath.Join(logdir, serviceName+"."+timeNOW()+".log"))
+		_ = os.Rename(logFilePath, filepath.Join(logDir, logName+"."+timeNOW()+".log"))
 	}
-	logWriter, err := makefile(logdir, logFileName)
+	logWriter, err := makefile(logDir, logFileName)
 	if err != nil {
 		return nil, err
 	}

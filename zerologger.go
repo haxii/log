@@ -73,6 +73,8 @@ func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interfa
 type LoggingConfig struct {
 	// Service service name
 	Service string
+	// Name running instance name
+	Name string
 	// Level logging level
 	Level zerolog.Level
 	// Disable console color
@@ -96,7 +98,11 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 	var err error
 	logWriters := make([]io.Writer, 0, 3)
 	if len(c.FileDir) > 0 {
-		l.logFile, err = OpenLogFile(c.FileDir, c.Service)
+		logName := c.Name
+		if len(logName) == 0 {
+			logName = c.Service
+		}
+		l.logFile, err = OpenLogFile(c.FileDir, logName)
 		if err != nil {
 			return nil, err
 		}
@@ -113,9 +119,13 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 		return nil, errors.New("no log writer available")
 	}
 
-	l.logger = zerolog.
+	logContext := zerolog.
 		New(zerolog.MultiLevelWriter(logWriters...)).
-		With().Timestamp().Str("service", c.Service).Logger()
+		With().Timestamp().Str("service", c.Service)
+	if len(c.Name) > 0 {
+		logContext = logContext.Str("name", c.Name)
+	}
+	l.logger = logContext.Logger()
 
 	return &l, nil
 }
