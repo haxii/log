@@ -123,7 +123,7 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 		New(zerolog.MultiLevelWriter(logWriters...)).
 		With().Timestamp().Str("service", c.Service)
 	if len(c.Name) > 0 {
-		logContext = logContext.Str("name", c.Name)
+		logContext = logContext.Str("process", c.Name)
 	}
 	l.logger = logContext.Logger()
 
