@@ -95,7 +95,7 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.DisableSampling(true)
 	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
-	zerolog.TimestampFunc = time.Now().UTC
+	zerolog.TimestampFunc = func() time.Time { return time.Now().UTC() }
 
 	var err error
 	logWriters := make([]io.Writer, 0, 3)
