@@ -30,11 +30,17 @@ func (l *ZeroLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
 	l.rawf(defaultCallSkip, rawMessage, format, v...)
 }
 func (l *ZeroLogger) rawf(callSkip int, rawMessage []byte, format string, v ...interface{}) {
+	event := l.logger.WithLevel(zerolog.NoLevel).Caller(callSkip)
 	if json.Valid(rawMessage) {
 		rawMessageInJSON := json.RawMessage(rawMessage)
-		l.logger.WithLevel(zerolog.NoLevel).Caller(callSkip).Interface("raw", rawMessageInJSON).Msgf(format, v...)
+		event.Interface("raw", rawMessageInJSON)
 	} else {
-		l.logger.WithLevel(zerolog.NoLevel).Caller(callSkip).Bytes("raw", rawMessage).Msgf(format, v...)
+		event.Bytes("raw", rawMessage)
+	}
+	if len(v) == 0 {
+		event.Msg(format)
+	} else {
+		event.Msgf(format, v...)
 	}
 }
 
@@ -43,7 +49,11 @@ func (l *ZeroLogger) Debugf(format string, v ...interface{}) {
 	l.debugf(defaultCallSkip, format, v...)
 }
 func (l *ZeroLogger) debugf(callSkip int, format string, v ...interface{}) {
-	l.logger.Debug().Caller(callSkip).Msgf(format, v...)
+	if len(v) == 0 {
+		l.logger.Debug().Caller(callSkip).Msg(format)
+	} else {
+		l.logger.Debug().Caller(callSkip).Msgf(format, v...)
+	}
 }
 
 // Infof implements info logger interface
@@ -51,7 +61,11 @@ func (l *ZeroLogger) Infof(format string, v ...interface{}) {
 	l.infof(defaultCallSkip, format, v...)
 }
 func (l *ZeroLogger) infof(callSkip int, format string, v ...interface{}) {
-	l.logger.Info().Caller(callSkip).Msgf(format, v...)
+	if len(v) == 0 {
+		l.logger.Info().Caller(callSkip).Msg(format)
+	} else {
+		l.logger.Info().Caller(callSkip).Msgf(format, v...)
+	}
 }
 
 // Errorf implements error logger interface
@@ -59,7 +73,11 @@ func (l *ZeroLogger) Errorf(err error, format string, v ...interface{}) {
 	l.errorf(defaultCallSkip, err, format, v...)
 }
 func (l *ZeroLogger) errorf(callSkip int, err error, format string, v ...interface{}) {
-	l.logger.Error().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
+	if len(v) == 0 {
+		l.logger.Error().Caller(callSkip).Stack().Err(err).Msg(format)
+	} else {
+		l.logger.Error().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
+	}
 }
 
 // Fatalf make a fatal return
@@ -67,7 +85,11 @@ func (l *ZeroLogger) Fatalf(err error, format string, v ...interface{}) {
 	l.fatalf(defaultCallSkip, err, format, v...)
 }
 func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interface{}) {
-	l.logger.Panic().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
+	if len(v) == 0 {
+		l.logger.Panic().Caller(callSkip).Stack().Err(err).Msg(format)
+	} else {
+		l.logger.Panic().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
+	}
 }
 
 // LoggingConfig helper for a logging destination
