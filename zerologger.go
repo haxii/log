@@ -94,14 +94,16 @@ func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interfa
 
 // LoggingConfig helper for a logging destination
 type LoggingConfig struct {
-	// Service service name
+	// Service name
 	Service string
 	// Name running instance name
 	Name string
 	// Level logging level
 	Level zerolog.Level
-	// Disable console color
+	// Disable console color in debug mode
 	DisableConsoleColor bool
+	// Stdout log json in stdout
+	Stdout bool
 	// FileDir write log to dir
 	FileDir string
 }
@@ -135,7 +137,9 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 
 	zerolog.SetGlobalLevel(c.Level)
 
-	if c.Level == zerolog.DebugLevel {
+	if c.Stdout {
+		logWriters = append(logWriters, os.Stdout)
+	} else if c.Level == zerolog.DebugLevel {
 		logWriters = append(logWriters, zerolog.ConsoleWriter{Out: os.Stderr, NoColor: c.DisableConsoleColor})
 	}
 
