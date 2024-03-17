@@ -16,6 +16,8 @@ import (
 type ZeroLogger struct {
 	logger  zerolog.Logger
 	logFile *os.File
+
+	callerLevel zerolog.Level
 }
 
 // GetZeroLogger returns the zero logger instance for advanced usage
@@ -49,11 +51,7 @@ func (l *ZeroLogger) Debugf(format string, v ...interface{}) {
 	l.debugf(defaultCallSkip, format, v...)
 }
 func (l *ZeroLogger) debugf(callSkip int, format string, v ...interface{}) {
-	if len(v) == 0 {
-		l.logger.Debug().Caller(callSkip).Msg(format)
-	} else {
-		l.logger.Debug().Caller(callSkip).Msgf(format, v...)
-	}
+	eventf(l.logger.Debug(), zerolog.DebugLevel >= l.callerLevel, false, callSkip, format, v...)
 }
 
 // Infof implements info logger interface
@@ -61,11 +59,7 @@ func (l *ZeroLogger) Infof(format string, v ...interface{}) {
 	l.infof(defaultCallSkip, format, v...)
 }
 func (l *ZeroLogger) infof(callSkip int, format string, v ...interface{}) {
-	if len(v) == 0 {
-		l.logger.Info().Caller(callSkip).Msg(format)
-	} else {
-		l.logger.Info().Caller(callSkip).Msgf(format, v...)
-	}
+	eventf(l.logger.Info(), zerolog.InfoLevel >= l.callerLevel, false, callSkip, format, v...)
 }
 
 // Errorf implements error logger interface
@@ -73,11 +67,8 @@ func (l *ZeroLogger) Errorf(err error, format string, v ...interface{}) {
 	l.errorf(defaultCallSkip, err, format, v...)
 }
 func (l *ZeroLogger) errorf(callSkip int, err error, format string, v ...interface{}) {
-	if len(v) == 0 {
-		l.logger.Error().Caller(callSkip).Stack().Err(err).Msg(format)
-	} else {
-		l.logger.Error().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
-	}
+	withCaller := zerolog.ErrorLevel >= l.callerLevel
+	eventf(l.logger.Error().Err(err), withCaller, withCaller, callSkip, format, v...)
 }
 
 // Fatalf make a fatal return
@@ -85,10 +76,20 @@ func (l *ZeroLogger) Fatalf(err error, format string, v ...interface{}) {
 	l.fatalf(defaultCallSkip, err, format, v...)
 }
 func (l *ZeroLogger) fatalf(callSkip int, err error, format string, v ...interface{}) {
+	eventf(l.logger.Panic().Err(err), true, true, callSkip, format, v...)
+}
+
+func eventf(event *zerolog.Event, withCaller, withStack bool, callSkip int, format string, v ...interface{}) {
+	if withCaller {
+		event = event.Caller(callSkip)
+	}
+	if withStack {
+		event = event.Stack()
+	}
 	if len(v) == 0 {
-		l.logger.Panic().Caller(callSkip).Stack().Err(err).Msg(format)
+		event.Msg(format)
 	} else {
-		l.logger.Panic().Caller(callSkip).Stack().Err(err).Msgf(format, v...)
+		event.Msgf(format, v...)
 	}
 }
 
@@ -100,6 +101,8 @@ type LoggingConfig struct {
 	Name string
 	// Level logging level
 	Level zerolog.Level
+	// CallerLevel caller setting level
+	CallerLevel zerolog.Level
 	// Disable console color in debug mode
 	DisableConsoleColor bool
 	// Stdout log json in stdout

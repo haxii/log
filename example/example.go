@@ -16,9 +16,11 @@ func main() {
 func zeroLoggerExample() {
 	zeroLogger, err := log.MakeZeroLogger(
 		log.LoggingConfig{
-			Level:   zerolog.WarnLevel,
-			FileDir: "/tmp/log",
-			Service: "example",
+			Level: zerolog.WarnLevel,
+			//FileDir: "/tmp/log",
+			Stdout:      true,
+			CallerLevel: zerolog.ErrorLevel,
+			Service:     "example",
 		})
 	if err != nil {
 		panic(err)
