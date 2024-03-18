@@ -25,7 +25,7 @@ func (l *ZeroLogger) GetZeroLogger() zerolog.Logger {
 	return l.logger
 }
 
-const defaultCallSkip = 2
+const defaultCallSkip = 3
 
 // Rawf implements raw logger interface
 func (l *ZeroLogger) Rawf(rawMessage []byte, format string, v ...interface{}) {
