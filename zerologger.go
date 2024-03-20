@@ -157,6 +157,7 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 		logContext = logContext.Str("process", c.Name)
 	}
 	l.logger = logContext.Logger()
+	l.callerLevel = c.CallerLevel
 
 	return &l, nil
 }
