@@ -109,6 +109,8 @@ type LoggingConfig struct {
 	Stdout bool
 	// FileDir write log to dir
 	FileDir string
+	// TimeFormat log time format
+	TimeFormat string
 }
 
 // MakeSimpleZeroLogger create a new simple logger using zero logger
@@ -121,7 +123,13 @@ func MakeZeroLogger(c LoggingConfig) (*ZeroLogger, error) {
 	l := ZeroLogger{}
 	zerolog.ErrorStackMarshaler = pkgerrors.MarshalStack
 	zerolog.DisableSampling(true)
-	zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
+	if len(c.TimeFormat) == 0 || c.TimeFormat == "timestamp" || c.TimeFormat == "unix" || c.TimeFormat == "cls" {
+		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
+	} else if c.TimeFormat == "sls" {
+		zerolog.TimeFieldFormat = "2006-01-02T15:04:05.999Z07:00"
+	} else {
+		zerolog.TimeFieldFormat = c.TimeFormat
+	}
 	zerolog.TimestampFunc = func() time.Time { return time.Now().UTC() }
 
 	var err error
