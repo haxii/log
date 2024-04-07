@@ -26,3 +26,9 @@ func Errorf(err error, format string, args ...interface{}) {
 func Fatalf(err error, format string, args ...interface{}) {
 	GlobalLogger.fatalf(defaultCallSkip, err, format, args...)
 }
+
+type PrintfLogger struct{}
+
+func (l PrintfLogger) Printf(format string, args ...interface{}) {
+	Infof(format, args...)
+}
