@@ -9,22 +9,22 @@ type Logger interface {
 	Fatalf(err error, format string, args ...interface{})
 }
 
-var GlobalLogger = MakeSimpleZeroLogger()
+var GlobalLogger Logger = MakeSimpleZeroLogger()
 
 func Rawf(msg []byte, format string, v ...interface{}) {
-	GlobalLogger.rawf(defaultCallSkip, msg, format, v...)
+	GlobalLogger.Rawf(msg, format, v...)
 }
 func Debugf(format string, args ...interface{}) {
-	GlobalLogger.debugf(defaultCallSkip, format, args...)
+	GlobalLogger.Debugf(format, args...)
 }
 func Infof(format string, args ...interface{}) {
-	GlobalLogger.infof(defaultCallSkip, format, args...)
+	GlobalLogger.Infof(format, args...)
 }
 func Errorf(err error, format string, args ...interface{}) {
-	GlobalLogger.errorf(defaultCallSkip, err, format, args...)
+	GlobalLogger.Errorf(err, format, args...)
 }
 func Fatalf(err error, format string, args ...interface{}) {
-	GlobalLogger.fatalf(defaultCallSkip, err, format, args...)
+	GlobalLogger.Fatalf(err, format, args...)
 }
 
 type PrintfLogger struct{}
